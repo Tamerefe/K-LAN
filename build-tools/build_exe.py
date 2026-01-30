@@ -71,6 +71,12 @@ def build_exe():
     """main.py'den .exe oluştur"""
     print("\n🔨 K-LAN.exe oluşturuluyor...")
     
+    # Ana dizine geçiş yap (main.py'nin olduğu yer)
+    original_dir = os.getcwd()
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(project_root)
+    print(f"📂 Çalışma dizini: {project_root}")
+    
     # Logo'yu ikona çevir
     icon_available = convert_logo_to_icon()
     
@@ -97,7 +103,7 @@ def build_exe():
     try:
         subprocess.check_call(cmd)
         print("\n✅ BUILD BAŞARILI!")
-        print("\n📁 K-LAN.exe dosyası şurada: dist\\K-LAN.exe")
+        print(f"\n📁 K-LAN.exe dosyası şurada: {os.path.join(project_root, 'dist', 'K-LAN.exe')}")
         print("\n🚀 Kullanım:")
         print("   1. dist\\K-LAN.exe dosyasını çift tıklayın")
         print("   2. İstediğiniz yere kopyalayıp kullanabilirsiniz")
@@ -109,10 +115,18 @@ def build_exe():
     except FileNotFoundError:
         print("\n❌ PyInstaller bulunamadı")
         return False
+    finally:
+        # Orijinal dizine geri dön
+        os.chdir(original_dir)
 
 def clean_build_files():
     """Build dosyalarını temizle"""
     import shutil
+    
+    # Ana dizinde temizlik yap
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    original_dir = os.getcwd()
+    os.chdir(project_root)
     
     print("\n🧹 Build dosyaları temizleniyor...")
     dirs_to_remove = ["build", "__pycache__"]
@@ -127,6 +141,8 @@ def clean_build_files():
         if os.path.exists(f):
             os.remove(f)
             print(f"   Silindi: {f}")
+    
+    os.chdir(original_dir)
 
 def main():
     print("=" * 60)
