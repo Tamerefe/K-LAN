@@ -69,11 +69,28 @@ async def send_state():
 
 async def handle_game_message(ws, data):
     """Oyundan gelen mesajları işle"""
+    typ = data.get("type")
+    
+    # JOIN mesajını işle
+    if typ == "join":
+        pid = player_by_ws.get(ws)
+        if not pid:
+            return
+        
+        name = data.get("name", "Guest")
+        players[pid]["name"] = name
+        
+        # Client'a joined mesajı gönder
+        await ws.send_str(build_payload("joined", pid=pid))
+        
+        # Güncel state'i gönder
+        await send_state()
+        return
+    
+    # Diğer mesajlar için pid kontrolü
     pid = player_by_ws.get(ws)
     if not pid:
         return
-    
-    typ = data.get("type")
     
     if typ == "start_game":
         if not game_state["started"] and len(players) >= MIN_PLAYERS:

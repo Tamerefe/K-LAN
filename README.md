@@ -1,59 +1,107 @@
-# 🎮 LAN Çok Oyunculu Oyun Platformu
+# 🎮 K-LAN - LAN Çok Oyunculu Oyun Platformu
 
-Bu proje, yerel ağ (LAN) üzerinden arkadaşlarınızla çok oyunculu oyunlar oynayabileceğiniz modüler bir platform. Tombala ve diğer klasik oyunları LAN üzerinden oynayın!
+Yerel ağ (LAN) üzerinden arkadaşlarınızla çok oyunculu oyunlar oynayabileceğiniz modüler bir platform. Tombala, Trust No One ve diğer klasik oyunları LAN üzerinden oynayın!
+
+## 🚀 Hızlı Başlangıç
+
+### Windows Kullanıcıları İçin (Python'suz!)
+
+1. **K-LAN.exe** dosyasını çift tıklayın
+2. Oyun menüsünden bir oyun seçin
+3. Başlayın!
+
+*Not: .exe dosyası yoksa `build.bat` dosyasına çift tıklayarak oluşturabilirsiniz.*
+
+### Python ile Başlatma
+
+**Seçenek 1 - Hızlı Başlatma (.bat dosyası)**
+- **K-LAN.bat** dosyasına çift tıklayın
+
+**Seçenek 2 - Manuel**
+```powershell
+python main.py
+```
 
 ## 📁 Proje Yapısı
 
 ```
-KKM_LAN/
-├── main.py                 # Ana arayüz - oyun seçici
-├── requirements.txt        # Python bağımlılıkları
-├── LICENSE                 # Lisans
-├── README.md              # Bu dosya
-├── games/                 # Oyun modülleri
-│   ├── tombala_game.py   # Tombala (Bingo) oyunu
-│   ├── kkm_game.py       # Kiss-Kill-Marry oyunu
-│   └── README.md         # Oyun dökümantasyonu
-└── lan/                   # LAN server altyapısı
-    ├── lan_server.py     # WebSocket sunucu
-    └── README.md         # Sunucu dökümantasyonu
+K-LAN/
+├── main.py                    # Ana arayüz - oyun seçici
+├── K-LAN.bat                  # Hızlı başlatma dosyası
+├── build.bat                  # .exe oluşturma scripti
+├── logo.jpg                   # Proje logosu
+├── requirements.txt           # Python bağımlılıkları
+├── LICENSE                    # Lisans
+├── README.md                  # Bu dosya
+├── build-tools/               # .exe oluşturma araçları
+│   ├── build_exe.py          # Ana build scripti
+│   ├── convert_logo_to_icon.py  # Logo dönüştürücü
+│   ├── BUILD_INSTRUCTIONS.md # Detaylı kılavuz
+│   └── README.md             # Build tools dökümantasyonu
+├── games/                     # Oyun modülleri
+│   ├── tombala_game.py       # Tombala (Bingo) oyunu
+│   ├── kkm_game.py           # Kiss-Kill-Marry oyunu
+│   ├── trustnoone_game.py    # Trust No One (sosyal dedüksiyon)
+│   └── README.md             # Oyun dökümantasyonu
+└── lan/                       # LAN server altyapısı
+    ├── lan_server.py         # WebSocket sunucu
+    └── README.md             # Sunucu dökümantasyonu
 ```
 
 ## ✨ Özellikler
 
+- **Tek Tıkla Başlatma**: Windows .exe desteği - Python yüklemeye gerek yok!
 - **Modüler Oyun Sistemi**: Yeni oyunlar kolayca eklenebilir
 - **LAN Desteği**: Aynı ağdaki tüm cihazlardan oynanabilir
 - **WebSocket Tabanlı**: Gerçek zamanlı çok oyunculu deneyim
 - **Web Arayüzü**: Tarayıcıdan oynanır, kurulum gerektirmez
+- **Cross-Platform**: Windows, macOS, Linux desteği
 - **Özelleştirilebilir**: `character.txt` ile karakter listesini düzenleyin
 
-## Gereksinimler
+## 📋 Gereksinimler
 
+### .EXE Dosyası Kullanıyorsanız
+- ❌ Hiçbir şey gerekmez! Sadece çift tıklayın.
+
+### Python ile Çalıştırıyorsanız
 - Python 3.8+ (Windows, macOS veya Linux)
 
-## Kurulum
+## 📦 Kurulum
 
-1. Bu projeyi indirin veya klonlayın.
-2. Bilgisayarınızda Python yüklü olduğundan emin olun.
+### Windows - .EXE Kullanıcıları (Python Gerektirmez!)
 
-### Windows PowerShell
+1. **`build.bat`** dosyasına çift tıklayın
+2. .exe oluşturulmasını bekleyin
+3. **`dist\K-LAN.exe`** dosyası oluşacak
+4. Bu dosyayı çift tıklayın - hazır!
+
+**Veya:** Hazır .exe dosyasını edinin ve çift tıklayın.
+
+Detaylı bilgi için: [build-tools/BUILD_INSTRUCTIONS.md](build-tools/BUILD_INSTRUCTIONS.md)
+
+### Python ile Kullanım
+
+#### Windows PowerShell
 
 ```powershell
 # Proje klasörüne girin
-cd "C:\Users\polis\Desktop\KKM_LAN"
+cd "C:\Users\polis\Desktop\K-LAN"
 
 # Gerekli bağımlılıkları yükleyin
 pip install -r requirements.txt
 
-# Ana menüyü başlatın
+# Hızlı başlatma
+.\K-LAN.bat
+
+# Veya manuel
 python main.py
 ```
 
-### Linux/macOS
+#### Linux/macOS
 
 ```bash
 # Proje klasörüne girin
-cd ~/Desktop/KKM_LAN
+cd ~/Desktop/K-LAN
 
 # Gerekli bağımlılıkları yükleyin
 pip install -r requirements.txt
@@ -64,20 +112,33 @@ python3 main.py
 
 ## 🎯 Kullanım
 
-### 1️⃣ Ana Menüden Oyun Başlatma
+### 🖱️ Yöntem 1: Tek Tıklama (ÖNERİLEN)
 
+**Windows .exe ile:**
+- **K-LAN.exe** dosyasına çift tıklayın
+
+**Python .bat ile:**
+- **K-LAN.bat** dosyasına çift tıklayın
+
+### ⌨️ Yöntem 2: Komut Satırı
+
+**Ana Menüden Oyun Başlatma:**
 ```powershell
 python main.py
 ```
 
 Ana menü açılır ve mevcut oyunları listeler. Oynamak istediğiniz oyunu seçin.
 
-### 2️⃣ Doğrudan Oyun Başlatma
-
-KKM oyununu doğrudan başlatmak için:
-
+**Doğrudan Oyun Başlatma:**
 ```powershell
+# KKM oyunu
 python games/kkm_game.py
+
+# Tombala oyunu
+python games/tombala_game.py
+
+# Trust No One
+python games/trustnoone_game.py
 ```
 
 ### 3️⃣ Oyuna Katılma
@@ -88,6 +149,27 @@ python games/kkm_game.py
 4. Host "Yeni Tur Başlat" dediğinde oyun başlar!
 
 ## 🎮 Mevcut Oyunlar
+
+### 🕵️ Trust No One
+
+Among Us tarzı sosyal dedüksiyon oyunu! Crew üyeleri görevleri tamamlamaya çalışırken, Saboteur onları sabote etmeye çalışır.
+
+**Rol Sistemi:**
+- **Crew (Mürettebat)**: Görevleri tamamla, Saboteur'ü bul
+- **Saboteur**: Görevleri sabote et, yakalanma!
+
+**Nasıl Oynanır:**
+1. Minimum 3 oyuncu gerekli
+2. Rastgele bir oyuncu Saboteur rolünü alır
+3. Her turda görev kartları gösterilir
+4. Oyuncular "DO" veya "SKIP" seçebilir (Saboteur "SABOTAGE" yapabilir)
+5. Sabotaj olursa ilerleme azalır
+6. Her turdan sonra oylama - kim şüpheli?
+7. Saboteur'ü bulun veya görevleri tamamlayın!
+
+**Kazanma Koşulları:**
+- **💋 Crew Kazanır**: İlerleme %100'e ulaşırsa VEYA Saboteur elenir
+- **Saboteur Kazanır**: Crew sayısı 1 veya daha aza inerse
 
 ### 🎲 Tombala (Bingo)
 
