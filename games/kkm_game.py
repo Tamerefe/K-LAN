@@ -1,15 +1,18 @@
-# lan_kkm.py
-# Kiss-Kill-Marry (LAN, çok oyunculu) - tek dosya, offline, tarayıcıdan oynanır.
-# Python 3.9+ gerekli. Kurulum: pip install aiohttp
+# kkm_game.py
+# Kiss-Kill-Marry Oyunu - Valorant Edition
 
 import asyncio
-import json
 import os
 import random
-from aiohttp import web, WSMsgType
+import sys
 
-HOST = "0.0.0.0"
-PORT = 8080
+# LAN server modülünü ekle
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from lan.lan_server import (
+    create_app, run_server, broadcast, build_payload, 
+    players, player_by_ws, clients, send_state
+)
+
 ROUND_TIME_LIMIT = 180  # saniye; istersen kapat (None)
 
 # --- Karakterleri yükle ---
@@ -20,7 +23,9 @@ DEFAULT_CHARACTERS = [
 ]
 
 def load_characters():
-    path = "character.txt"
+    # games klasöründe character.txt'yi ara
+    base_path = os.path.dirname(__file__)
+    path = os.path.join(base_path, "character.txt")
     chars = []
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
@@ -34,47 +39,13 @@ def load_characters():
 
 CHARACTERS = load_characters()
 
-# --- Hafıza durumu ---
-clients = set()                # WebSocket bağlantıları
-players = {}                   # player_id -> {"name": str, "score": int}
-player_by_ws = {}              # ws -> player_id
+# --- Oyun durumu ---
 current_round = None           # {"triplet": [a,b,c], "choices": {pid: {"kiss":i,"kill":i,"marry":i}}, "open": bool}
 round_index = 0
 
 def pick_unique_three():
     triplet = random.sample(CHARACTERS, 3)
     return triplet
-
-def build_payload(type_, **data):
-    out = {"type": type_}
-    out.update(data)
-    return json.dumps(out, ensure_ascii=False)
-
-async def broadcast(msg: str):
-    dead = []
-    for ws in clients:
-        try:
-            await ws.send_str(msg)
-        except:
-            dead.append(ws)
-    for ws in dead:
-        await unregister(ws)
-
-async def register(ws, player_name):
-    pid = f"p{random.randint(100000, 999999)}"
-    players[pid] = {"name": player_name[:24] or "Guest", "score": 0}
-    player_by_ws[ws] = pid
-    await send_state()
-    return pid
-
-async def unregister(ws):
-    pid = player_by_ws.get(ws)
-    if pid:
-        players.pop(pid, None)
-    player_by_ws.pop(ws, None)
-    if ws in clients:
-        clients.remove(ws)
-    await send_state()
 
 async def send_state():
     # oyuncu listesi + skorlar
@@ -149,8 +120,27 @@ async def handle_submit(pid, data):
         if all_submitted():
             await end_round()
 
-# --- HTTP ve WebSocket ---
+# --- WebSocket mesaj işleyici ---
+async def handle_game_message(ws, data):
+    """Oyun mesajlarını işle"""
+    typ = data.get("type")
+    
+    if typ == "start_round":
+        # herhangi biri başlatabilir; gerçek hayatta host kontrolü eklenebilir
+        await start_round()
 
+    elif typ == "submit":
+        pid = player_by_ws.get(ws)
+        if not pid:
+            return
+        await handle_submit(pid, data.get("data") or {})
+
+# LAN server'ın handle_game_message fonksiyonunu override et
+import lan.lan_server as lan_module
+lan_module.handle_game_message = handle_game_message
+lan_module.send_state = send_state
+
+# --- HTML Arayüzü ---
 INDEX_HTML = r"""<!doctype html>
 <html lang="tr">
 <head>
@@ -319,70 +309,12 @@ window.addEventListener("load", ()=>{
 </html>
 """
 
-async def index(request):
-    return web.Response(text=INDEX_HTML, content_type="text/html")
-
-async def ws_handler(request):
-    ws = web.WebSocketResponse(heartbeat=20)
-    await ws.prepare(request)
-    clients.add(ws)
-    await ws.send_str(build_payload("hello"))
-
-    try:
-        async for msg in ws:
-            if msg.type == WSMsgType.TEXT:
-                try:
-                    data = json.loads(msg.data)
-                except:
-                    continue
-                typ = data.get("type")
-
-                if typ == "join":
-                    name = (data.get("name") or "Guest").strip()
-                    pid = await register(ws, name)
-                    await ws.send_str(build_payload("joined", pid=pid, name=players[pid]["name"]))
-
-                elif typ == "resume":
-                    # tekrar bağlanma senaryosu için basit davran: yeni kayıt
-                    name = players.get(data.get("pid"), {"name":"Guest"})["name"]
-                    pid = await register(ws, name)
-                    await ws.send_str(build_payload("joined", pid=pid, name=name))
-
-                elif typ == "start_round":
-                    # herhangi biri başlatabilir; gerçek hayatta host kontrolü eklenebilir
-                    await start_round()
-
-                elif typ == "submit":
-                    pid = player_by_ws.get(ws)
-                    if not pid:
-                        continue
-                    await handle_submit(pid, data.get("data") or {})
-
-            elif msg.type == WSMsgType.ERROR:
-                pass
-    finally:
-        await unregister(ws)
-    return ws
-
 def main():
-    app = web.Application()
-    app.router.add_get("/", index)
-    app.router.add_get("/ws", ws_handler)
+    print("🎮 Kiss · Kill · Marry - Valorant Edition")
+    print(f"📂 {len(CHARACTERS)} karakter yüklendi")
     
-    # LAN bağlantısı için IP adreslerini göster
-    import socket
-    hostname = socket.gethostname()
-    local_ip = socket.gethostbyname(hostname)
-    
-    print(f"🌐 Sunucu başlatıldı!")
-    print(f"📍 Yerel erişim: http://localhost:{PORT}")
-    print(f"🌍 LAN erişimi: http://{local_ip}:{PORT}")
-    print(f"🔗 Diğer cihazlar bu adresi kullanabilir: http://{local_ip}:{PORT}")
-    print(f"⚠️  Eğer bağlanamıyorsa Windows Güvenlik Duvarı'nı kontrol edin")
-    print("-" * 50)
-    
-    web.run_app(app, host=HOST, port=PORT)
+    app = create_app(INDEX_HTML)
+    run_server(app, port=8080)
 
 if __name__ == "__main__":
-    print(f"Sunucu başlıyor: http://0.0.0.0:{PORT}")
     main()
